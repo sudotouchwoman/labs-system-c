@@ -1,5 +1,10 @@
 #include "utils.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 string_t * empty_string(const size_t length) {
     string_t * new_string = calloc(1, sizeof(string_t));
     if (new_string == NULL)
@@ -95,10 +100,3 @@ void delete_string(string_t * str) {
     free(str->str);
     free(str);
 }
-
-int is_readable_fd(const int fd) {
-    int flags = fcntl(fd, F_GETFL);
-    if (flags == -1) return 0;
-    return (flags & O_ACCMODE) == O_RDONLY || (flags & O_ACCMODE) == O_RDWR;
-}
-

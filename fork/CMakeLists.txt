@@ -1,5 +1,5 @@
 set(SOURCES src/kernel.c src/services.c src/utils.c)
-add_library(kernel STATIC ${SOURCES})
+add_library(kernel SHARED ${SOURCES})
 target_include_directories(kernel PUBLIC inc/)
 
 add_executable(main main.c)

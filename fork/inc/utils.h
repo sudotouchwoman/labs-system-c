@@ -1,14 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <signal.h>
-#include <termios.h>
-#include <fcntl.h>
-
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 typedef struct {
     char * str;
@@ -21,7 +14,5 @@ string_t * make_string(char * raw_string);
 string_t * read_string(const int fd);
 string_t * shrink_string(const string_t * str);
 void delete_string(string_t * str);
-
-int is_readable_fd(const int fd);
 
 #endif
