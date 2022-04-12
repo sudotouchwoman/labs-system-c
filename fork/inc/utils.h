@@ -3,8 +3,10 @@
 
 #include <stdlib.h>
 
+#define BUFFER_SIZE 10
+
 typedef struct {
-    char * str;
+    char * raw_string;
     size_t length;
     size_t capacity;
 } string_t;

@@ -5,18 +5,30 @@
 
 #include "utils.h"
 
+enum {
+    SERVICES_STDIN = 0,
+    SERVICES_STDOUT = 1,
+    SERVICES_EMPTY_PTR_ERROR = -1,
+    SERVICES_EMPTY_STRING = -2,
+    SERVICES_OK = 0,
+    ASCII_a = 97,
+    ASCII_z = 97 + 25,
+    ASCII_A = 65,
+    ASCII_Z = 65 + 25
+};
+
+void quit_handler(int signum);
+
 void register_swap_handler(int signum);
 void string_inversion_handler(int signum);
 void char_swap_handler(int signum);
 void charset_swap_handler(int signum);
 
-int swap_chars(string_t * const str);
+int swap_neighbours(string_t * const str);
 int invert_string(string_t * const str);
 int swap_register(string_t * const str);
 int swap_charset(string_t * const str);
 
-// static int (*actions[])(string_t * const) = {
-//     swap_chars, invert_string, swap_register, swap_charset
-// };
+void set_handler(const size_t id);
 
 #endif
