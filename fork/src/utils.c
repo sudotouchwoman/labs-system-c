@@ -34,7 +34,6 @@ string_t * make_string(char * raw_string) {
     return new_string;
 }
 
-
 static string_t * resize_string(string_t * str) {
     char * new_string = calloc(str->capacity * 2, sizeof(char));
     if (new_string == NULL)
@@ -51,7 +50,6 @@ string_t * read_string(const int fd) {
     if (buffer == NULL) return NULL;
 
     char ch;
-    size_t read_chars = 0;
 
     for (;;) {
         read(fd, &ch, sizeof(ch));
@@ -64,12 +62,8 @@ string_t * read_string(const int fd) {
             buffer = new_buffer;
         }
 
-        if (ch == '\n') {
-            break;
-        }
-
-        buffer->raw_string[read_chars++] = ch;
-        buffer->length++;
+        if (ch == '\n') break;
+        buffer->raw_string[buffer->length++] = ch;
     }
     return buffer;
 }

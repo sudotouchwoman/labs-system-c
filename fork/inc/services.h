@@ -17,14 +17,17 @@ enum {
     ASCII_Z = 65 + 25
 };
 
+// signal handlers for services (child processes)
 void quit_handler(int signum);
 void work_handler(int signum);
 
+// logic implemented by services
 int swap_neighbours(string_t * const str);
 int invert_string(string_t * const str);
 int swap_register(string_t * const str);
 int swap_charset(string_t * const str);
 
+// execute logic based on service id
 void use_service(const size_t id);
 
 #endif

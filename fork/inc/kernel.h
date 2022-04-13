@@ -23,16 +23,17 @@ enum {
 enum {
     ASCII_0 = 48,
     ASCII_9 = 48 + 9,
-    KERNEL_BAD_INPUT = -1
+    KERNEL_BAD_INPUT = 0,
+    KERNEL_VALID_INPUT
 };
+
+void kernel_sighandler(int signum);
+void set_kernel_sighandler();
 
 typedef struct {
     size_t  n_services;
     pid_t* pids;
 } proc_pool_t;
-
-void kernel_sighandler(int signum);
-void set_kernel_sighandler();
 
 proc_pool_t * make_pool();
 int init_services(proc_pool_t *const pool, const size_t service_count);
