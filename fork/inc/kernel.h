@@ -31,11 +31,14 @@ typedef struct {
     pid_t* pids;
 } proc_pool_t;
 
+void kernel_sighandler(int signum);
+void set_kernel_sighandler();
+
 proc_pool_t * make_pool();
 int init_services(proc_pool_t *const pool, const size_t service_count);
 void release_services(proc_pool_t * const pool);
 
-int spawn_child_processes(proc_pool_t *const pool);
+int spawn_child_processes(proc_pool_t *const pool, size_t * const service_id);
 int call_service(const proc_pool_t pool, const size_t service_id);
 void kill_services(const proc_pool_t pool);
 

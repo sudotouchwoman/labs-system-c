@@ -2,6 +2,14 @@
 
 #include <fcntl.h>
 
+void kernel_sighandler(int signum) {
+    return;
+}
+
+void set_kernel_sighandler() {
+    signal(SIGUSR1, kernel_sighandler);
+}
+
 proc_pool_t * make_pool() {
     proc_pool_t * pool = calloc(1, sizeof(proc_pool_t));
     if (pool == NULL)
@@ -27,13 +35,17 @@ void release_services(proc_pool_t *const pool) {
     free(pool);
 }
 
-int spawn_child_processes(proc_pool_t *const pool) {
+int spawn_child_processes(proc_pool_t *const pool, size_t * const this_pid) {
+    if (pool == NULL) return KERNEL_FORK_ERROR;
+    if (this_pid == NULL) return KERNEL_FORK_ERROR;
+
     pid_t pid = 0;
     for (size_t i = 0; i < pool->n_services; ++i) {
         if ((pid = fork()) == -1) return KERNEL_FORK_ERROR;
         if (pid == 0) {
-            set_handler(i);
+            signal(SIGUSR1, work_handler);
             signal(SIGTERM, quit_handler);
+            *this_pid = i;
             break;
         }
         pool->pids[i] = pid;
@@ -87,6 +99,6 @@ static int is_digit(char c) {
 
 int ensure_user_input(char c) {
     if (!is_digit(c)) return KERNEL_BAD_INPUT;
-    return atoi(&c) < N_SERVICES ? KERNEL_OK: KERNEL_BAD_INPUT;
+    return (int)(c - ASCII_0) < N_SERVICES ? KERNEL_OK: KERNEL_BAD_INPUT;
 }
 
