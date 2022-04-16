@@ -15,6 +15,7 @@ enum {
     KERNEL_SERVICE_INIT_ERROR = -1,
     KERNEL_OK = 0,
     KERNEL_EMPTY_PTR_ERROR,
+    KERNRL_WRONG_FD_MODE_ERROR,
     KERNEL_FD_NOT_TERMINAL_ERROR = -1,
     KERNEL_FCNTL_FLAGS_ERROR = 0,
     CHILD = 0
@@ -27,8 +28,9 @@ enum {
     KERNEL_VALID_INPUT
 };
 
-void kernel_sighandler(int signum);
-void set_kernel_sighandler();
+void listen_to_children();
+
+int write_time(const int fd);
 
 typedef struct {
     size_t  n_services;
@@ -44,10 +46,11 @@ int call_service(const proc_pool_t pool, const size_t service_id);
 void kill_services(const proc_pool_t pool);
 
 int is_readable_fd(const int fd);
+int is_writeable_fd(const int fd);
 
-int get_tty(int fd, struct termios * tty_p);
+int get_tty(int fd, struct termios *const tty_p);
+int apply_tty(int fd, const struct termios *const tty_p);
 int set_noncanonical_mode(struct termios * tty_p);
-int apply_tty(int fd, struct termios * tty_p);
 
 int ensure_user_input(char c);
 

@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     // set signal handler for kernel process
     // to wake up when service finishes processing
     pid_t pid = 0, ppid = getpid();
-    set_kernel_sighandler();
+    listen_to_children();
 
     const char welcome_text[] = 
         "KERNEL: Welcome to Useless OS\n"
@@ -37,6 +37,7 @@ int main(int argc, char* argv[]) {
         "\t1 - invert string\n"
         "\t2 - swap odd characters with even\n"
         "\t3 - swap charset (to KOI-8)\n";
+    write_time(SERVICES_STDOUT);
     write(SERVICES_STDOUT, welcome_text, sizeof(welcome_text));
 
     size_t service_id = 0;
@@ -71,12 +72,14 @@ int main(int argc, char* argv[]) {
     // stop when Q key is pressed
     for (;;) {
         apply_tty(SERVICES_STDIN, &tty);
+        write_time(SERVICES_STDOUT);
         fprintf(stderr, "KERNEL: Awaiting User input (integer in range [0; %d])\n", N_SERVICES - 1);
         char c = 0;
         read(SERVICES_STDIN, &c, sizeof(c));
         if (c == 'Q' || c == 'q') break;
         if (ensure_user_input(c) == KERNEL_BAD_INPUT) {
-            fprintf(stderr, "UNKNOWN OPTION PROVIDED: %c\n", c);
+            write_time(SERVICES_STDOUT);
+            fprintf(stderr, "KERNEL: Unknown option provided: %c\n", c);
             continue;
         }
         // suspend in order to release the terminal
@@ -85,13 +88,14 @@ int main(int argc, char* argv[]) {
         pause();
     }
 
+    const char quit_text[] = "KERNEL: See you Space Cowboy...\n";
+    write_time(SERVICES_STDOUT);
+    write(SERVICES_STDOUT, quit_text, sizeof(quit_text));
+
     // release resources and free allocated memory
     // also reset the terminal to its initial mode
-    kill_services(*pool);    
+    kill_services(*pool);
     release_services(pool);
     apply_tty(SERVICES_STDIN, &old_tty);
-    
-    const char quit_text[] = "See you Space Cowboy...\n";
-    write(SERVICES_STDOUT, quit_text, sizeof(quit_text));
     return EXIT_SUCCESS;
 }
