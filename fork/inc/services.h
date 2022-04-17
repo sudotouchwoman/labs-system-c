@@ -6,8 +6,6 @@
 #include "utils.h"
 
 enum {
-    SERVICES_STDIN = 0,
-    SERVICES_STDOUT = 1,
     SERVICES_EMPTY_PTR_ERROR = -1,
     SERVICES_EMPTY_STRING = -2,
     SERVICES_OK = 0,

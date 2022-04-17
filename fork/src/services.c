@@ -24,7 +24,7 @@ static void swap(char *const a, char *const b) {
 
 static void register_swap_handler() {
     fprintf(stderr, "%d ==> REGISTER SWAPPER\n", getpid());
-    string_t * str = read_string(SERVICES_STDIN);
+    string_t * str = read_string(STDIN_FILENO);
     if (swap_register(str) != SERVICES_OK) {
         fprintf(stderr, "%d ==> Could not process the input!\n", getpid());
         delete_string(str);
@@ -36,7 +36,7 @@ static void register_swap_handler() {
 
 static void string_inversion_handler() {
     fprintf(stderr, "%d ==> STRING INVERTOR\n", getpid());
-    string_t * str = read_string(SERVICES_STDIN);
+    string_t * str = read_string(STDIN_FILENO);
     if (invert_string(str) != SERVICES_OK) {
         fprintf(stderr, "%d ==> Could not process the input!\n", getpid());
         delete_string(str);
@@ -48,7 +48,7 @@ static void string_inversion_handler() {
 
 static void char_swap_handler() {
     fprintf(stderr, "%d ==> EVEN-ODD SWAPPER\n", getpid());
-    string_t * str = read_string(SERVICES_STDIN);
+    string_t * str = read_string(STDIN_FILENO);
     if (swap_neighbours(str) != SERVICES_OK) {
         fprintf(stderr, "%d ==> Could not process the input!\n", getpid());
         delete_string(str);
@@ -60,7 +60,7 @@ static void char_swap_handler() {
 
 static void charset_swap_handler() {
     fprintf(stderr, "%d ==> CHARSET SWAPPER\n", getpid());
-    string_t * str = read_string(SERVICES_STDIN);
+    string_t * str = read_string(STDIN_FILENO);
     if (swap_charset(str) != SERVICES_OK) {
         fprintf(stderr, "%d ==> Could not process the input!\n", getpid());
         delete_string(str);
@@ -134,7 +134,10 @@ int swap_charset(string_t * const str) {
 // but for a fixed number of services and corresponding actions,
 // one can access the action of a service simply via index
 static void (*actions[])() = {
-    register_swap_handler, string_inversion_handler, char_swap_handler, charset_swap_handler
+    register_swap_handler,
+    string_inversion_handler,
+    char_swap_handler,
+    charset_swap_handler
 };
 
 void use_service(const size_t id) {
