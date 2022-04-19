@@ -6,7 +6,9 @@
 enum MANAGER {
     OK,
     EMPTY_PTR_ERROR,
-    THREAD_CREATION_ERROR
+    THREAD_CREATION_ERROR,
+    WORKING = 0,
+    DONE
 };
 
 typedef struct {
@@ -31,8 +33,9 @@ int spawn_workers(
     grid_t *const prev_grid);
 
 void sync(pthread_barrier_t *const barrier);
+void mark_done(managed_pool_t *const pool);
 // int set_thread_attrs(pthread_attr_t *const attrs);
 // int init_barrier(pthread_barrier_t *const barrier, const size_t n_threads);
-struct timeval elapsed_time(const struct timeval start, const struct timeval end);
+double elapsed_time(const struct timeval start, const struct timeval end);
 
 #endif

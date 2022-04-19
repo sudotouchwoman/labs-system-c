@@ -36,7 +36,7 @@ static double voltage_at_adjacent(
         // are updated according to the boundary conditions
         const size_t height = prev->h;
         const size_t width = prev->w;
-        const double phi_node =  current->grid[idx(prev, x, y)];
+        const double phi_node =  current->grid[idx(current, x, y)];
 
     if (x == 0) {
         // leftmost border
@@ -81,7 +81,7 @@ static double voltage_at_adjacent(
 void* worker_routine(void * args) {
     if (args == NULL) return args;
 
-    fprintf(stderr, "Thread started\n");
+    // fprintf(stderr, "Thread started\n");
     worker_args_t *const routine_args = (worker_args_t*)args;
     grid_t *const current_ts = routine_args->current_ts;
     grid_t *const prev_ts = routine_args->prev_ts;
@@ -132,7 +132,7 @@ void* worker_routine(void * args) {
         // await other threads to finish current iteration
         pthread_barrier_wait(routine_args->end_barrier);
     }
-    fprintf(stderr, "Thread Finished\n");
-    pthread_exit(args);
+    // fprintf(stderr, "Thread Finished\n");
+    return args;
 }
 

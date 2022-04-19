@@ -176,15 +176,19 @@ int spawn_workers(const managed_pool_t pool, grid_t *const current_grid, grid_t 
     return OK;
 }
 
+void mark_done(managed_pool_t *const pool) {
+    if (pool == NULL) return;
+    *pool->quit = DONE;
+}
+
 void sync(pthread_barrier_t *const barrier) {
     pthread_barrier_wait(barrier);
 }
 
-struct timeval elapsed_time(const struct timeval start, const struct timeval end) {
-    const struct timeval dt = {
-        .tv_sec = end.tv_sec - start.tv_sec,
-        .tv_usec = end.tv_usec - start.tv_usec
-    };
-    return dt;
+double elapsed_time(const struct timeval start, const struct timeval end) {
+    double time_taken = 0.0;
+    time_taken = (end.tv_sec - start.tv_sec) * 1e6;
+    time_taken = (time_taken + (end.tv_usec - start.tv_usec)) * 1e-6;
+    return time_taken;
 }
 
