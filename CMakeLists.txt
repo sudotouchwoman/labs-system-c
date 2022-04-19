@@ -9,3 +9,4 @@ add_compile_options(-Wall -Werror -Wpedantic)
 set(PROJECT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(fork)
+add_subdirectory(thread)
