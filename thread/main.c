@@ -73,6 +73,6 @@ int main(int argc, char* argv[]) {
     destroy_grid(current_grid);
     destroy_grid(prev_grid);
 
-    fprintf(stderr, "Elapsed time: %ds %ldms\n", (int)dt.tv_sec, dt.tv_usec);
+    fprintf(stderr, "Elapsed time: %lds %ldms\n", dt.tv_sec, dt.tv_usec);
     return EXIT_SUCCESS;
 }

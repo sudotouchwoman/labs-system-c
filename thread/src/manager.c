@@ -83,15 +83,15 @@ managed_pool_t* init_pool(const physics_t ex, const size_t n_threads, const grid
 
         return NULL;
     }
-    
+
     memcpy(ex_allocated, &ex, sizeof(physics_t));
 
     buffer->n_threads = n_threads;
     buffer->tids = tids;
-    
+
     buffer->start_barrier = start_barrier;
     buffer->end_barrier = end_barrier;
-    
+
     buffer->worker_attrs = worker_attrs;
     buffer->ex = ex_allocated;
     buffer->quit = quit;
@@ -125,10 +125,10 @@ int destroy_pool(managed_pool_t *const pool) {
 
     free(pool->ex);
     free(pool->quit);
-    
+
     free(pool->rows_start);
     free(pool->rows_end);
-    
+
     pthread_attr_destroy(pool->worker_attrs);
     free(pool->worker_attrs);
     free(pool);
