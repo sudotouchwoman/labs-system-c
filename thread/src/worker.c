@@ -1,6 +1,7 @@
 #include "worker.h"
 
 #include <pthread.h>
+#include <stdio.h>
 
 enum {
     NO = 0,
@@ -37,49 +38,50 @@ static double voltage_at_adjacent(
         const size_t width = prev->w;
         const double phi_node =  current->grid[idx(prev, x, y)];
 
-        if (x == 0) {
-            // leftmost border
-            const double phi_adj =
-                prev->grid[idx(prev, x, y + 1)] +
-                prev->grid[idx(prev, x, y - 1)] +
-                prev->grid[idx(prev, x + 1, y)];
-            return phi_adj - 3* phi_node;
-        }
-        if (x == width) {
-            // rightmost border
-            const double phi_adj =
-                prev->grid[idx(prev, x, y + 1)] +
-                prev->grid[idx(prev, x, y - 1)] +
-                prev->grid[idx(prev, x - 1, y)];
-            return phi_adj - 3* phi_node;
-        }
-        if (y == 0) {
-            // upper border
-            const double phi_adj =
-                prev->grid[idx(prev, x, y + 1)] +
-                prev->grid[idx(prev, x + 1, y)] +
-                prev->grid[idx(prev, x - 1, y)];
-            return phi_adj - 3* phi_node;
-        }
-        if (y == height) {
-            // lower border
-            const double phi_adj =
-                prev->grid[idx(prev, x, y - 1)] +
-                prev->grid[idx(prev, x + 1, y)] +
-                prev->grid[idx(prev, x - 1, y)];
-            return phi_adj - 3* phi_node;
-        }
+    if (x == 0) {
+        // leftmost border
         const double phi_adj =
-                prev->grid[idx(prev, x, y - 1)] +
-                prev->grid[idx(prev, x, y + 1)] +
-                prev->grid[idx(prev, x + 1, y)] +
-                prev->grid[idx(prev, x - 1, y)];
-        return phi_adj - 4 * phi_node;
+            prev->grid[idx(prev, x, y + 1)] +
+            prev->grid[idx(prev, x, y - 1)] +
+            prev->grid[idx(prev, x + 1, y)];
+        return phi_adj - 3* phi_node;
     }
+    if (x == width) {
+        // rightmost border
+        const double phi_adj =
+            prev->grid[idx(prev, x, y + 1)] +
+            prev->grid[idx(prev, x, y - 1)] +
+            prev->grid[idx(prev, x - 1, y)];
+        return phi_adj - 3* phi_node;
+    }
+    if (y == 0) {
+        // upper border
+        const double phi_adj =
+            prev->grid[idx(prev, x, y + 1)] +
+            prev->grid[idx(prev, x + 1, y)] +
+            prev->grid[idx(prev, x - 1, y)];
+        return phi_adj - 3* phi_node;
+    }
+    if (y == height) {
+        // lower border
+        const double phi_adj =
+            prev->grid[idx(prev, x, y - 1)] +
+            prev->grid[idx(prev, x + 1, y)] +
+            prev->grid[idx(prev, x - 1, y)];
+        return phi_adj - 3* phi_node;
+    }
+    const double phi_adj =
+            prev->grid[idx(prev, x, y - 1)] +
+            prev->grid[idx(prev, x, y + 1)] +
+            prev->grid[idx(prev, x + 1, y)] +
+            prev->grid[idx(prev, x - 1, y)];
+    return phi_adj - 4 * phi_node;
+}
 
 void* worker_routine(void * args) {
     if (args == NULL) return args;
 
+    fprintf(stderr, "Thread started\n");
     worker_args_t *const routine_args = (worker_args_t*)args;
     grid_t *const current_ts = routine_args->current_ts;
     grid_t *const prev_ts = routine_args->prev_ts;
@@ -130,6 +132,7 @@ void* worker_routine(void * args) {
         // await other threads to finish current iteration
         pthread_barrier_wait(routine_args->end_barrier);
     }
+    fprintf(stderr, "Thread Finished\n");
     pthread_exit(args);
 }
 

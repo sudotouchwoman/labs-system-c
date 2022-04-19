@@ -31,8 +31,8 @@ int spawn_workers(
     grid_t *const prev_grid);
 
 void sync(pthread_barrier_t *const barrier);
-int set_thread_attrs(pthread_attr_t *const attrs);
-int init_barrier(pthread_barrier_t *const barrier, const size_t n_threads);
+// int set_thread_attrs(pthread_attr_t *const attrs);
+// int init_barrier(pthread_barrier_t *const barrier, const size_t n_threads);
 struct timeval elapsed_time(const struct timeval start, const struct timeval end);
 
 #endif

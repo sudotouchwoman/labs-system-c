@@ -21,65 +21,58 @@ int main(int argc, char* argv[]) {
 
     const size_t timesteps = 100;
 
-    grid_t * prev = make_grid(H, W);
-    if (prev == NULL) {
+    grid_t * prev_grid = make_grid(H, W);
+    if (prev_grid == NULL) {
         fprintf(stderr, "Failed to create grid\n");
         return EXIT_FAILURE;
     }
 
-    grid_t * current = make_grid(H, W);
-    if (current == NULL) {
+    grid_t * current_grid = make_grid(H, W);
+    if (current_grid == NULL) {
         fprintf(stderr, "Failed to create grid\n");
         return EXIT_FAILURE;
     }
 
     const size_t n_threads = N_THREADS;
-    pthread_attr_t thread_attrs;
 
-    if (set_thread_attrs(&thread_attrs) != OK) {
-        fprintf(stderr, "Attributes not set\n");
-        return EXIT_FAILURE;
-    }
-
-    managed_pool_t *const pool = init_pool(ex, n_threads);
+    managed_pool_t *const pool = init_pool(ex, n_threads, *current_grid);
     if (pool == NULL) {
-        destroy_grid(current);
-        destroy_grid(prev);
+        destroy_grid(current_grid);
+        destroy_grid(prev_grid);
         fprintf(stderr, "Thread pool creation error\n");
         return EXIT_FAILURE;
     }
 
-    pthread_barrier_t start_barrier, end_barrier;
-    init_barrier(&start_barrier, n_threads + 1);
-    init_barrier(&start_barrier, n_threads + 1);
-
-    pool->start_barrier = &start_barrier;
-    pool->end_barrier = &end_barrier;
-    pool->worker_attrs = &thread_attrs;
-
-    spawn_workers(*pool, current, prev);
+    spawn_workers(*pool, current_grid, prev_grid);
 
     struct timeval t_start, t_end;
     struct timezone tz;
 
     gettimeofday(&t_start, &tz);
-    const size_t grid_size = sizeof(double) * current->h * current->w;
+    const size_t grid_size = sizeof(double) * current_grid->h * current_grid->w;
 
-    sync(&start_barrier);
+    sync(pool->start_barrier);
 
     for (size_t i = 1; i < timesteps; ++i) {
-        sync(&end_barrier);
-        memcpy(prev->grid, current->grid, grid_size);
-        memset(current->grid, 0, grid_size);
+        sync(pool->end_barrier);
+        memcpy(prev_grid->grid, current_grid->grid, grid_size);
+        memset(current_grid->grid, 0, grid_size);
         fprintf(stderr, "[%lu]\tProcessing...\n", i);
-        sync(&start_barrier);
+        sync(pool->start_barrier);
     }
 
-    // quit = 1;
+    *pool->quit = 1;
+    sync(pool->end_barrier);
 
     gettimeofday(&t_end, &tz);
     const struct timeval dt = elapsed_time(t_start, t_end);
 
-    fprintf(stderr, "Elapsed time: %lds %ldms\n", dt.tv_sec, dt.tv_usec);
+    await_workers(*pool);
+    destroy_pool(pool);
+
+    destroy_grid(current_grid);
+    destroy_grid(prev_grid);
+
+    fprintf(stderr, "Elapsed time: %ds %ldms\n", (int)dt.tv_sec, dt.tv_usec);
     return EXIT_SUCCESS;
 }
