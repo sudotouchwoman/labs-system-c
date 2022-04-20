@@ -81,7 +81,7 @@ static double voltage_at_adjacent(
 void* worker_routine(void * args) {
     if (args == NULL) return args;
 
-    // fprintf(stderr, "Thread started\n");
+    fprintf(stderr, "Thread started\n");
     worker_args_t *const routine_args = (worker_args_t*)args;
     grid_t *const current_ts = routine_args->current_ts;
     grid_t *const prev_ts = routine_args->prev_ts;
@@ -127,12 +127,13 @@ void* worker_routine(void * args) {
                 // V^{t+1} = V^t + \frac{dV^t}{dt} * h
                 const double tau = ex.R * ex.C;
                 current_ts->grid[index] = prev_ts->grid[index] + ex.h * v_adj / tau;
+                fprintf(stderr, "updated current grid at [%lu;%lu]: %lf\n", y, x, current_ts->grid[index]);
             }
         }
         // await other threads to finish current iteration
         pthread_barrier_wait(routine_args->end_barrier);
     }
-    // fprintf(stderr, "Thread Finished\n");
+    fprintf(stderr, "Thread Finished\n");
     return args;
 }
 

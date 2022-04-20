@@ -7,6 +7,10 @@ add_library(grid SHARED ${THREAD_SOURCES})
 target_include_directories(grid PUBLIC inc/)
 target_link_libraries(grid Threads::Threads)
 
+add_executable(benchmark benchmark.c)
+target_include_directories(benchmark PUBLIC "${PROJECT_FOLDER}/thread/inc/")
+target_link_libraries(benchmark grid)
+
 add_executable(RC main.c)
 target_include_directories(RC PUBLIC "${PROJECT_FOLDER}/thread/inc/")
 target_link_libraries(RC grid)

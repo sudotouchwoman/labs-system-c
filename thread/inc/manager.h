@@ -2,6 +2,7 @@
 #define _MANAGER_H
 
 #include "worker.h"
+#include <stdio.h>
 
 enum MANAGER {
     OK,
@@ -37,5 +38,8 @@ void mark_done(managed_pool_t *const pool);
 // int set_thread_attrs(pthread_attr_t *const attrs);
 // int init_barrier(pthread_barrier_t *const barrier, const size_t n_threads);
 double elapsed_time(const struct timeval start, const struct timeval end);
+
+void setup_gnuplot(FILE *const fd);
+void dump_timestep(FILE *const fd, const grid_t *const grid);
 
 #endif

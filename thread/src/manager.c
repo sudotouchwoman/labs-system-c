@@ -1,7 +1,6 @@
 #include "manager.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <memory.h>
 #include <pthread.h>
 
@@ -107,7 +106,7 @@ void await_workers(const managed_pool_t pool) {
     for (size_t i = 0; i < pool.n_threads; ++i) {
         void *retval;
         pthread_join(pool.tids[i], &retval);
-        fprintf(stderr, "Joined %lu\n", i);
+        // fprintf(stderr, "Joined %lu\n", i);
         // free the memory chunk
         // allocated in `spawn_workers` function
         free(retval);
@@ -190,5 +189,32 @@ double elapsed_time(const struct timeval start, const struct timeval end) {
     time_taken = (end.tv_sec - start.tv_sec) * 1e6;
     time_taken = (time_taken + (end.tv_usec - start.tv_usec)) * 1e-6;
     return time_taken;
+}
+
+static char gnuplot_preamble [] = 
+    "set terminal gif animate delay 4\n"
+    "set output \"voltage.gif\"\n"
+    "set xlabel 'X'\n"
+    "set ylabel 'Y'\n"
+    "set zlabel 'U'\n"
+    "set style line 1 lc rgb '#5e9c36' pt 6 ps 1 lt 1 lw 2\n"
+    ;
+
+void setup_gnuplot(FILE *const fd) {
+    fwrite(gnuplot_preamble, 1, sizeof(gnuplot_preamble), fd);
+}
+
+void dump_timestep(FILE *const fd, const grid_t *const grid) {
+    // 3d plot with lines+points and linestyle 1 (defined in preamble above)
+    fprintf(fd, "set dgrid3d\n");
+    fprintf(fd, "set zrange [-2:2]\n");
+    fprintf(fd, "splot '-' u 1:2:3 title 'Signal' w lp ls 1\n");
+    for (size_t y = 0; y < grid->h; ++y) {
+        for (size_t x = 0; x < grid->w; ++x) {
+            fprintf(fd, "%lu %lu %lf\n", x, y, grid->grid[y * grid->w + x]);
+        }
+    }
+    fprintf(fd, "e\n");
+    fflush(fd);
 }
 
