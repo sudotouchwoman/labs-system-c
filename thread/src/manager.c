@@ -19,10 +19,13 @@ static int init_barrier(pthread_barrier_t *const barrier, const size_t n_threads
 }
 
 static void fill_pool(managed_pool_t *const pool, const grid_t grid) {
+    // initialize the memory chuncks allocated in `init_pool`
+    // with appropriate values
     init_barrier(pool->start_barrier, pool->n_threads + 1);
     init_barrier(pool->end_barrier, pool->n_threads + 1);
     set_thread_attrs(pool->worker_attrs);
 
+    // unset the quitting flag
     *pool->quit = 0;
 
     const size_t height = grid.h;
@@ -211,8 +214,6 @@ void setup_gnuplot(FILE *const fd) {
 void dump_timestep(FILE *const fd, const grid_t *const grid, const size_t frame) {
     // 3d plot with lines+points and linestyle 1 (defined in preamble above)
     fprintf(fd, "set dgrid3d 30, 30, 1\n");
-    // fprintf(fd, "set palette maxcolors 10\n");
-    // fprintf(fd, "set isosamples %lu, %lu\n", grid->w, grid->h);
     fprintf(fd, "splot '-' u 1:2:3 title 'Signal (Frame %lu)' w lines ls 1\n", frame);
     for (size_t y = 0; y < grid->h; ++y) {
         for (size_t x = 0; x < grid->w; ++x) {

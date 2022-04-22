@@ -23,6 +23,8 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    // theis config should be exported somewhere outside
+    // and read in runtime but I am too lazy to do that
     const size_t timesteps = 250;
     const physics_t ex = {
         .C = 1.0,
@@ -53,6 +55,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    // open saparate process to pass intermediate results to gnuplot
     FILE* gnuplot_script = popen("gnuplot -persist", "w");
     if (gnuplot_script == NULL) {
         fprintf(stderr, "Failed to open output file with gnuplot script\n");
@@ -64,13 +67,14 @@ int main(int argc, char* argv[]) {
 
     setup_gnuplot(gnuplot_script);
 
+    // measure the computation time
     struct timeval t_start, t_end;
     struct timezone tz;
     gettimeofday(&t_start, &tz);
 
     const size_t grid_size = sizeof(double) * current_grid->h * current_grid->w;
+    // create threads and start integration
     spawn_workers(*pool, current_grid, prev_grid);
-
     sync(pool->start_barrier);
 
     for (size_t i = 1; i < timesteps; ++i) {
