@@ -23,23 +23,15 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    const size_t timesteps = 200;
+    const size_t timesteps = 250;
     const physics_t ex = {
-        .C = 4.0,
-        .R = 1.0,
-        .I = 10.0,
-        .U = 30.0,
-        .h = 0.5,
+        .C = 1.0,
+        .R = 2.5,
+        .I = 15.0,
+        .U = 20.0,
+        .h = 0.2,
         .SOURCE = CURRENT_SOURCE
     };
-
-    FILE* gnuplot_script = popen("gnuplot -persist", "w");
-    if (gnuplot_script == NULL) {
-        fprintf(stderr, "Failed to open output file with gnuplot script\n");
-        exit(EXIT_FAILURE);
-    }
-
-    setup_gnuplot(gnuplot_script);
 
     grid_t * prev_grid = make_grid(H, W);
     if (prev_grid == NULL) {
@@ -61,6 +53,17 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    FILE* gnuplot_script = popen("gnuplot -persist", "w");
+    if (gnuplot_script == NULL) {
+        fprintf(stderr, "Failed to open output file with gnuplot script\n");
+        destroy_grid(current_grid);
+        destroy_grid(prev_grid);
+        destroy_pool(pool);
+        exit(EXIT_FAILURE);
+    }
+
+    setup_gnuplot(gnuplot_script);
+
     struct timeval t_start, t_end;
     struct timezone tz;
     gettimeofday(&t_start, &tz);
@@ -72,24 +75,25 @@ int main(int argc, char* argv[]) {
 
     for (size_t i = 1; i < timesteps; ++i) {
         sync(pool->end_barrier);
-        fprintf(stderr, "\r[%lu/%lu] Processing...", i, timesteps);
+        fprintf(stderr, "\r[%3lu/%3lu] Processing...", i, timesteps);
         dump_timestep(gnuplot_script, prev_grid, i);
         memcpy(prev_grid->grid, current_grid->grid, grid_size);
         sync(pool->start_barrier);
     }
 
     mark_done(pool);
+    fprintf(stderr, "Done\n");
     sync(pool->end_barrier);
+
+    pclose(gnuplot_script);
     await_workers(*pool);
 
     gettimeofday(&t_end, &tz);
-    const double dt = elapsed_time(t_start, t_end);
+    fprintf(stderr, "Elapsed time: %.8lfs\n", elapsed_time(t_start, t_end));
 
-    pclose(gnuplot_script);
     destroy_pool(pool);
     destroy_grid(current_grid);
     destroy_grid(prev_grid);
 
-    fprintf(stderr, "Elapsed time: %.8lfs\n", dt);
     return EXIT_SUCCESS;
 }

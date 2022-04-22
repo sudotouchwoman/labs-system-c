@@ -36,52 +36,51 @@ static double voltage_at_adjacent(
         // are updated according to the boundary conditions
         const size_t height = prev->h;
         const size_t width = prev->w;
-        const double phi_node = at(current, x, y);
+        const double phi_node = at(prev, x, y);
 
     if (x == 0) {
         // leftmost border
         const double phi_adj =
-            prev->grid[idx(prev, x, y + 1)] +
-            prev->grid[idx(prev, x, y - 1)] +
-            prev->grid[idx(prev, x + 1, y)];
+            at(prev, x, y + 1) +
+            at(prev, x, y - 1) +
+            at(prev, x + 1, y);
         return phi_adj - 3 * phi_node;
     }
     if (x == width - 1) {
         // rightmost border
         const double phi_adj =
-            prev->grid[idx(prev, x, y + 1)] +
-            prev->grid[idx(prev, x, y - 1)] +
-            prev->grid[idx(prev, x - 1, y)];
+            at(prev, x, y + 1) +
+            at(prev, x, y - 1) +
+            at(prev, x - 1, y);
         return phi_adj - 3 * phi_node;
     }
     if (y == 0) {
         // upper border
         const double phi_adj =
-            prev->grid[idx(prev, x, y + 1)] +
-            prev->grid[idx(prev, x + 1, y)] +
-            prev->grid[idx(prev, x - 1, y)];
+            at(prev, x, y + 1) +
+            at(prev, x + 1, y) +
+            at(prev, x - 1, y);
         return phi_adj - 3 * phi_node;
     }
     if (y == height - 1) {
         // lower border
         const double phi_adj =
-            prev->grid[idx(prev, x, y - 1)] +
-            prev->grid[idx(prev, x + 1, y)] +
-            prev->grid[idx(prev, x - 1, y)];
+            at(prev, x, y - 1) +
+            at(prev, x + 1, y) +
+            at(prev, x - 1, y);
         return phi_adj - 3 * phi_node;
     }
     const double phi_adj =
-            prev->grid[idx(prev, x, y - 1)] +
-            prev->grid[idx(prev, x, y + 1)] +
-            prev->grid[idx(prev, x + 1, y)] +
-            prev->grid[idx(prev, x - 1, y)];
+            at(prev, x, y - 1) +
+            at(prev, x, y + 1) +
+            at(prev, x + 1, y) +
+            at(prev, x - 1, y);
     return phi_adj - 4 * phi_node;
 }
 
 void* worker_routine(void * args) {
     if (args == NULL) return args;
 
-    fprintf(stderr, "Thread started\n");
     worker_args_t *const routine_args = (worker_args_t*)args;
     grid_t *const current_ts = routine_args->current_ts;
     grid_t *const prev_ts = routine_args->prev_ts;
@@ -90,10 +89,14 @@ void* worker_routine(void * args) {
     const size_t row_start = routine_args->row_start;
     const size_t row_end = routine_args->row_end;
     const size_t width = routine_args->current_ts->w;
+    const size_t height = routine_args->current_ts->h;
     // ex stands for experiment setup, "ex" is just shorter
     // that "setup"
     const physics_t ex = *routine_args->setup;
     const int source_type = ex.SOURCE;
+
+    fprintf(stderr, "Thread started with %lux%lu grid. Working region is [%lu; %lu]\n",
+    height, width, row_start, row_end);
 
     // temporary variable to hold the total
     // voltage at adjacent nodes
@@ -109,7 +112,6 @@ void* worker_routine(void * args) {
         for (size_t y = row_start; y < row_end; ++y) {
             for (size_t x = 0; x < width; ++x) {
                 const size_t index = idx(current_ts, x, y);
-
                 if (is_corner(x, y, current_ts) == NO) {
                     v_adj = voltage_at_adjacent(prev_ts, current_ts, x, y);
                 } else {
