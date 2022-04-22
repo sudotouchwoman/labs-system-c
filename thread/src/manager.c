@@ -192,11 +192,12 @@ double elapsed_time(const struct timeval start, const struct timeval end) {
 }
 
 static char gnuplot_preamble [] = 
-    "set terminal gif animate delay 4\n"
+    "set terminal gif size 800,800 animate delay 5\n"
     "set output \"voltage.gif\"\n"
     "set xlabel 'X'\n"
     "set ylabel 'Y'\n"
     "set zlabel 'U'\n"
+    "set zrange [-1:15]\n"
     "set style line 1 lc rgb '#5e9c36' pt 6 ps 1 lt 1 lw 2\n"
     ;
 
@@ -204,14 +205,13 @@ void setup_gnuplot(FILE *const fd) {
     fwrite(gnuplot_preamble, 1, sizeof(gnuplot_preamble), fd);
 }
 
-void dump_timestep(FILE *const fd, const grid_t *const grid) {
+void dump_timestep(FILE *const fd, const grid_t *const grid, const size_t frame) {
     // 3d plot with lines+points and linestyle 1 (defined in preamble above)
     fprintf(fd, "set dgrid3d\n");
-    fprintf(fd, "set zrange [-2:2]\n");
-    fprintf(fd, "splot '-' u 1:2:3 title 'Signal' w lp ls 1\n");
+    fprintf(fd, "splot '-' u 1:2:3 title 'Signal Frame %lu' w lp ls 1\n", frame);
     for (size_t y = 0; y < grid->h; ++y) {
         for (size_t x = 0; x < grid->w; ++x) {
-            fprintf(fd, "%lu %lu %lf\n", x, y, grid->grid[y * grid->w + x]);
+            fprintf(fd, "%lu %lu %lf\n", x, y, at(grid, x, y));
         }
     }
     fprintf(fd, "e\n");

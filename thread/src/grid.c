@@ -3,8 +3,18 @@
 #include <stdlib.h>
 #include <memory.h>
 
+#include <stdio.h>
+#include <unistd.h>
+
 size_t idx(const grid_t *const ref, const size_t x, const size_t y) {
-    return 0;
+    // the question is, whether the index function should
+    // raise, I guess that it would be better to
+    //it (ref == NULL) return 0;
+    return ref->w * y + x;
+}
+
+double at(const grid_t *const ref, const size_t x, const size_t y) {
+    return ref->grid[ref->w * y + x];
 }
 
 grid_t * make_grid(const size_t h, const size_t w) {
@@ -31,4 +41,15 @@ int destroy_grid(grid_t *const grid) {
     free(grid->grid);
     free(grid);
     return GRID_OK;
+}
+
+void pprint_grid(const grid_t* const grid) {
+    if (grid == NULL) return;
+    fprintf(stderr, "Grid State:\n");
+    for (size_t y = 0; y < grid->h; ++y) {
+        for (size_t x = 0; x < grid->w; ++x) {
+            fprintf(stderr, "%2.5lf ", grid->grid[y * grid->w + x]);
+        }
+        fprintf(stderr, "\n");
+    }
 }

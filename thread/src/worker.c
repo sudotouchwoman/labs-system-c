@@ -13,9 +13,9 @@ static int is_corner(const size_t x, const size_t y, const grid_t * const grid) 
     const size_t height = grid->h;
 
     if (x == 0 && y == 0) return YES;
-    if (x == 0 && y == height) return YES;
-    if (x == width && y == 0) return YES;
-    if (x == width && y == height) return YES;
+    if (x == 0 && y == height - 1) return YES;
+    if (x == width - 1 && y == 0) return YES;
+    if (x == width - 1 && y == height - 1) return YES;
     return NO;
 }
 
@@ -36,7 +36,7 @@ static double voltage_at_adjacent(
         // are updated according to the boundary conditions
         const size_t height = prev->h;
         const size_t width = prev->w;
-        const double phi_node =  current->grid[idx(current, x, y)];
+        const double phi_node = at(current, x, y);
 
     if (x == 0) {
         // leftmost border
@@ -44,15 +44,15 @@ static double voltage_at_adjacent(
             prev->grid[idx(prev, x, y + 1)] +
             prev->grid[idx(prev, x, y - 1)] +
             prev->grid[idx(prev, x + 1, y)];
-        return phi_adj - 3* phi_node;
+        return phi_adj - 3 * phi_node;
     }
-    if (x == width) {
+    if (x == width - 1) {
         // rightmost border
         const double phi_adj =
             prev->grid[idx(prev, x, y + 1)] +
             prev->grid[idx(prev, x, y - 1)] +
             prev->grid[idx(prev, x - 1, y)];
-        return phi_adj - 3* phi_node;
+        return phi_adj - 3 * phi_node;
     }
     if (y == 0) {
         // upper border
@@ -60,15 +60,15 @@ static double voltage_at_adjacent(
             prev->grid[idx(prev, x, y + 1)] +
             prev->grid[idx(prev, x + 1, y)] +
             prev->grid[idx(prev, x - 1, y)];
-        return phi_adj - 3* phi_node;
+        return phi_adj - 3 * phi_node;
     }
-    if (y == height) {
+    if (y == height - 1) {
         // lower border
         const double phi_adj =
             prev->grid[idx(prev, x, y - 1)] +
             prev->grid[idx(prev, x + 1, y)] +
             prev->grid[idx(prev, x - 1, y)];
-        return phi_adj - 3* phi_node;
+        return phi_adj - 3 * phi_node;
     }
     const double phi_adj =
             prev->grid[idx(prev, x, y - 1)] +
@@ -127,7 +127,6 @@ void* worker_routine(void * args) {
                 // V^{t+1} = V^t + \frac{dV^t}{dt} * h
                 const double tau = ex.R * ex.C;
                 current_ts->grid[index] = prev_ts->grid[index] + ex.h * v_adj / tau;
-                fprintf(stderr, "updated current grid at [%lu;%lu]: %lf\n", y, x, current_ts->grid[index]);
             }
         }
         // await other threads to finish current iteration

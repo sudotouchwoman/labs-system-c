@@ -5,8 +5,8 @@
 #include "manager.h"
 
 #define N_THREADS 4
-#define H (4)
-#define W (4)
+#define H (32)
+#define W (32)
 
 int main(int argc, char* argv[]) {
     size_t n_threads = N_THREADS;
@@ -23,17 +23,16 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    const size_t timesteps = 10;
+    const size_t timesteps = 200;
     const physics_t ex = {
-        .C = 1.0,
-        .R = 5.0,
+        .C = 4.0,
+        .R = 1.0,
         .I = 10.0,
-        .U = 20.0,
-        .h = 0.1,
-        .SOURCE = VOLTAGE_SOUCRE
+        .U = 30.0,
+        .h = 0.5,
+        .SOURCE = CURRENT_SOURCE
     };
 
-    // FILE* gnuplot_script = fopen("script.plt", "w");
     FILE* gnuplot_script = popen("gnuplot -persist", "w");
     if (gnuplot_script == NULL) {
         fprintf(stderr, "Failed to open output file with gnuplot script\n");
@@ -66,17 +65,16 @@ int main(int argc, char* argv[]) {
     struct timezone tz;
     gettimeofday(&t_start, &tz);
 
-    const size_t grid_size = current_grid->h * current_grid->w;
+    const size_t grid_size = sizeof(double) * current_grid->h * current_grid->w;
     spawn_workers(*pool, current_grid, prev_grid);
 
     sync(pool->start_barrier);
 
     for (size_t i = 1; i < timesteps; ++i) {
         sync(pool->end_barrier);
-        fprintf(stderr, "[%lu/%lu]\tProcessing...\n", i, timesteps);
-        dump_timestep(gnuplot_script, prev_grid);
-        memcpy(prev_grid->grid, current_grid->grid, sizeof(double) * grid_size);
-        // memset(current_grid->grid, 0, grid_size);
+        fprintf(stderr, "\r[%lu/%lu] Processing...", i, timesteps);
+        dump_timestep(gnuplot_script, prev_grid, i);
+        memcpy(prev_grid->grid, current_grid->grid, grid_size);
         sync(pool->start_barrier);
     }
 
@@ -87,11 +85,10 @@ int main(int argc, char* argv[]) {
     gettimeofday(&t_end, &tz);
     const double dt = elapsed_time(t_start, t_end);
 
+    pclose(gnuplot_script);
     destroy_pool(pool);
     destroy_grid(current_grid);
     destroy_grid(prev_grid);
-    pclose(gnuplot_script);
-    // fclose(gnuplot_script);
 
     fprintf(stderr, "Elapsed time: %.8lfs\n", dt);
     return EXIT_SUCCESS;

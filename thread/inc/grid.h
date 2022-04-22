@@ -30,9 +30,12 @@ typedef struct {
 } physics_t;
 
 size_t idx(const grid_t *const ref, const size_t x, const size_t y);
+double at(const grid_t *const ref, const size_t x, const size_t y);
 
 grid_t * make_grid(const size_t h, const size_t w);
 void set_grid(grid_t * const grid, const double value);
 int destroy_grid(grid_t *const grid);
+
+void pprint_grid(const grid_t* const grid);
 
 #endif
