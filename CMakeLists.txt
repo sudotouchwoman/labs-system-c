@@ -10,3 +10,4 @@ set(PROJECT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(fork)
 add_subdirectory(thread)
+add_subdirectory(socket)
