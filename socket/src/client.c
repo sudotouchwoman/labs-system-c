@@ -2,7 +2,6 @@
 
 #include <arpa/inet.h>  // inet_pton
 #include <netdb.h>  // gethostbyname
-#include <netinet/in.h>
 #include <sys/socket.h>
 #include <errno.h>
 
@@ -36,11 +35,13 @@ static int dns_lookup(const char *const host, char *const ip) {
 static const char GET_REQUEST_HEADER[] =
     "GET %s HTTP/1.1\r\n"
     "HOST: %s\r\n"
+    "Connection: close\r\n\r\n"
     ;
 
 static const char GET_ROOT_REQUEST_HEADER[] =
     "GET / HTTP/1.1\r\n"
     "HOST: %s\r\n"
+    "Connection: close\r\n\r\n"
     ;
 
 static char FILE_PATH[FILE_BUF];
@@ -59,7 +60,6 @@ int http_get(char *url, const char *port) {
         // host name contains a slash --> it is a path to file (resource)
         // e.g., "github.com/sudotouchwoman"
         strncpy(FILE_PATH, aux, FILE_BUF);
-        fprintf(stderr, "URL: %s\n", url);
         strtok(url, "/");
         snprintf(request_body, BUF_SIZE, GET_REQUEST_HEADER, FILE_PATH, url);
     }
@@ -67,6 +67,7 @@ int http_get(char *url, const char *port) {
     fprintf(stderr, "Formed request:\n%s", request_body);
 
     char ip[IPv4_SIZE];
+    memset(ip, 0, IPv4_SIZE);
 
     if (dns_lookup(url_copy, ip) != CLIENT_OK) {
         fprintf(stderr, "DNS lookup failed! Host: %s\n", url_copy);
@@ -96,7 +97,7 @@ int http_get(char *url, const char *port) {
         return CLIENT_CONN_ERROR;
     }
 
-    fprintf(stderr, "Connection successful...Sending GET request...\n\n\n");
+    fprintf(stderr, "Connection successful, sending GET request...\n\n");
     write(sockfd, request_body, strnlen(request_body, BUF_SIZE));
     return sockfd;
 }
@@ -135,16 +136,16 @@ int http_recieve(
     memset(&RESPONSE_BUFFER, 0, BUF_SIZE);
 
     int ret = 0;
-    ssize_t read_bytes = 0;
-    ssize_t left_bytes = 0;
+    ssize_t bytes_read = 0;
+    ssize_t bytes_left = 0;
 
     while ((ret = recv(sockfd, RESPONSE_BUFFER, BUF_SIZE, 0)) > 0) {
-        callback(RESPONSE_BUFFER);
-        read_bytes += ret;
-        left_bytes += written(outfd, RESPONSE_BUFFER, ret, 0);
+        // callback(RESPONSE_BUFFER);
+        bytes_read += ret;
+        bytes_left += written(outfd, RESPONSE_BUFFER, ret, 0);
         memset(&RESPONSE_BUFFER, 0, BUF_SIZE);
     }
 
-    fprintf(stderr, "Read bytes: %li\nWrote bytes: %li\n", read_bytes, read_bytes - left_bytes);
+    fprintf(stderr, "Read bytes: %li\nWrote bytes: %li\n", bytes_read, bytes_read - bytes_left);
     return 0;    
 }
