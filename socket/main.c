@@ -20,6 +20,10 @@ int main(int argc, char* argv[]) {
 
     // infinite loop to wait for user input and scrape URLs
     for (;;) {
+        // flush all the trash from buffers in case
+        // there is something left from the last iteration
+        // e.g., user gave an invalid url like "http://"
+        fflush(NULL);
         if (!URL_LOADED) {
             memset(url, 0, BUF_SIZE);
             memset(port, 0, PORT_BUF);
@@ -46,6 +50,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        // this means that something really went wrong
         if (url == NULL || *url == 0) {
             fprintf(stderr, "Empty URL pointer given\n");
             break;
@@ -105,6 +110,7 @@ int main(int argc, char* argv[]) {
         }
 
         URL_LOADED = 1;
+        // next url is a line read from tmp file at line "selected_url"
         const char *new_url = pick_next_url(selected_url);
         if (!url_contains_protocol(new_url)) {
             // must be an addition to the absolute path

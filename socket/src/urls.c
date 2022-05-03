@@ -53,7 +53,7 @@ size_t list_urls() {
 
 size_t url_choice(const size_t url_count, int *const ok) {
     // let the user select number of URL to open next
-    fprintf(stderr, "Enter id of URL to open (not greater than %lu), or Q to abort: ", url_count);
+    fprintf(stderr, "Enter id of URL to open (not greater than %lu), 0 to refresh current page or -1 to abort: ", url_count);
     size_t picked = 0;
     if (fscanf(stdin, "%lu", &picked) == 1 && ok != NULL)
         *ok = 1;

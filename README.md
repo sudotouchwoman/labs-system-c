@@ -13,7 +13,11 @@ the number of matrix rows should be divisible by the number of workers).
 Also, a benchmarking example on 1024x1024 grid is provided to expose the performance boost when
 processing is split between multiple threads.
 
-### Notes on numerical stability:
+## `socket/`: simple http client
+This client behaves like a browser in the sense that it displays the http response and searches
+for all `<a>` tags on the page, asking user to choose the next request target.
+
+### Notes on numerical stability (for `thread/`):
 One expected yet nice result I managed to obtain is the presence of numerical instability
 of forward Euler method, which is well-known both for speed and worst possible accuracy
 (as the culumative error is `O(n)`).
