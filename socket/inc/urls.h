@@ -21,7 +21,9 @@ enum {
     COMPILED
 };
 
-// int search_urls(const char * document);
 void parse();
+size_t list_urls();
+const char *const pick_next_url(const size_t url_num);
+size_t url_choice(const size_t url_count, int *const status);
 
 #endif

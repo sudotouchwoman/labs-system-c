@@ -16,26 +16,35 @@ int main(int argc, char* argv[]) {
     const char http[] = "http://";
     const char https[] = "https://";
 
+    int SKIP_PROMPT = 0;
+
     // infinite loop to wait for user input and scrape URLs
     for (;;) {
-        fprintf(stderr, "Press Q to quit, Enter to enter website location: ");
-        char key_pressed = 0;
-        read(fileno(stdin), &key_pressed, 1);
+        if (!SKIP_PROMPT) {
+            fprintf(stderr, "Press Q to quit, Enter to enter website location: ");
+            char key_pressed = 0;
+            read(fileno(stdin), &key_pressed, 1);
 
-        if (key_pressed == 'Q' || key_pressed == 'q') {
-            fprintf(stdout, "Quit...\n");
-            break;
+            if (key_pressed == 'Q' || key_pressed == 'q') {
+                fprintf(stdout, "Quit...\n");
+                break;
+            }
+
+            if (key_pressed == 10) {
+                fprintf(stdout, "Enter new URL: ");
+                if ((fscanf(stdin, "%s", url)) != 1) {
+                    fprintf(stderr, "Error reading URL\n");
+                    continue;
+                };
+            } else {
+                fprintf(stderr, "Invalid option: %c\n", key_pressed);
+                continue;
+            }
         }
 
-        if (key_pressed == 10) {
-            fprintf(stdout, "Enter new URL: ");
-            if ((fscanf(stdin, "%s", url)) != 1) {
-                fprintf(stderr, "Error reading URL\n");
-                continue;
-            };
-        } else {
-            fprintf(stderr, "Invalid option: %c\n", key_pressed);
-            continue;
+        if (url == NULL || *url == 0) {
+            fprintf(stderr, "Invalid URL\n");
+            break;
         }
 
         // open temporary files
@@ -50,7 +59,6 @@ int main(int argc, char* argv[]) {
         }
 
         // initialize the parser and remove protocol from url if present
-        // init_parser();
         if ((strstr(url, http) != NULL)) {
             protocol_removed = url + sizeof(http) - 1;
         }
@@ -69,7 +77,7 @@ int main(int argc, char* argv[]) {
 
         // recieve the response and pass it to the parser
         http_recieve(sock, fileno(response_file));
-        fprintf(stderr, "Finished with url %s\n", url);
+        // grep response and store the result in tmp file
         parse();
         memset(url, 0, BUF_SIZE);
         memset(port, 0, PORT_BUF);
@@ -77,6 +85,25 @@ int main(int argc, char* argv[]) {
 
         fclose(response_file);
         fclose(urls_file);
+
+        // let the user choose whether to move somewhere or not
+        int ok = 0; SKIP_PROMPT = 0;
+        const size_t url_count = list_urls();
+
+        if (!url_count) {
+            fprintf(stderr, "No URLs were found on this page\n");
+            continue;
+        }
+
+        size_t selected_url = url_choice(url_count, &ok);
+
+        if (!ok) {
+            fprintf(stderr, "Invalid option.\n");
+            continue;
+        }
+
+        SKIP_PROMPT = 1;
+        strncpy(url, pick_next_url(selected_url), sizeof(url) - 1);
     }
 
     // close temporary files

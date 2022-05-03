@@ -144,6 +144,6 @@ int http_recieve(
         memset(&RESPONSE_BUFFER, 0, BUF_SIZE);
     }
 
-    fprintf(stderr, "Read bytes: %li\nWrote bytes: %li\n", bytes_read, bytes_read - bytes_left);
+    fprintf(stderr, "Socket: Read %li bytes, wrote %li bytes\n\n\n", bytes_read, bytes_read - bytes_left);
     return 0;    
 }

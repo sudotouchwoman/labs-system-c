@@ -1,68 +1,17 @@
 #include "urls.h"
 
-// static const char A_FULL_MATCH[] =
-//     "(<a[[:blank:][:alnum:]=\"]* href=\"([^\"]*)[[:blank:][:alnum:]=\"]*\">)";
-
-// static regex_t pattern;
-
-// int compile_re() {
-//     fprintf(stderr, "Compiles regex: %s\n", A_FULL_MATCH);
-//     return regcomp(&pattern, A_FULL_MATCH, REG_EXTENDED);
-// }
-
-// static int parse_chunk(char *const chunk) {
-//     if (chunk == NULL) return LINKS_NULL_PTR_ERROR;
-
-//     char *cursor = chunk;
-//     regmatch_t group_array[MAX_GROUPS];
-//     memset(group_array, 0, sizeof(group_array));
-
-//     fprintf(stderr, ">>> START OF CHUNK!!!\n\n%s\n\n>>> END OF CHUNK !!!\n", chunk);
-
-//     for (size_t i = 0; i < MAX_MATCHES; ++i) {
-//         if (regexec(&pattern, cursor, MAX_GROUPS, group_array, 0)) break;
-
-//         fprintf(stderr, "\n>>> FOUND SOMETHING IN CHUNK\n");
-//         size_t gi = 0;
-//         size_t offset = 0;
-
-//         for (; gi < MAX_GROUPS; ++gi) {
-//             if (group_array[gi].rm_so == (size_t)-1)
-//                 break;  // no more groups
-
-//             if (gi == 0)
-//                 offset = group_array[gi].rm_eo;
-
-//             char cursor_copy[strlen(cursor) + 1];
-//             strcpy(cursor_copy, cursor);
-//             cursor_copy[group_array[gi].rm_eo] = 0;
-
-//             fprintf(stderr, "\n>>> Match %lu Group %lu: [%u-%u]: %s\n",
-//                 i, gi, group_array[gi].rm_so, group_array[gi].rm_eo,
-//                 cursor_copy + group_array[gi].rm_so);
-//         }
-//         cursor += offset;
-//         ++urls_found;
-//     }
-
-//     regfree(&pattern);
-//     return 0;
-// }
-
 static const char GREP_CALL[] = 
     "cat " RESPONSE_FILE
     " | grep -Eo \"https?://[a-zA-Z0-9./?=_%:-]*\""
     " > " URLS_FILE
     ;
 
-// static char URL_BUF[BUF_SIZE];
+static char BUFFER[BUF_SIZE];
 
 void parse() {
     FILE *const response = fopen(RESPONSE_FILE, "r");
-    FILE *const urls = fopen(URLS_FILE, "r");
 
     int ret = 0;
-    char BUFFER[BUF_SIZE];
     memset(BUFFER, 0, BUF_SIZE);
 
     while ((ret = read(fileno(response), BUFFER, BUF_SIZE)) > 0) {
@@ -70,28 +19,50 @@ void parse() {
         memset(BUFFER, 0, BUF_SIZE);
     }
 
-    // FILE *const grep = popen(GREP_CALL, "r");
-    // if (grep == NULL) {
-    //     fprintf(stderr, "Failed to call grep\n");
-    //     exit(EXIT_FAILURE);
-    // }
+    // use grep command to search for URLs
+    // and store the result in a temporary file
     system(GREP_CALL);
+    fclose(response);
+}
 
-    fprintf(stderr, "GREP OUTPUTS\n");
+size_t list_urls() {
+    FILE *const urls = fopen(URLS_FILE, "r");
+    memset(BUFFER, 0, BUF_SIZE);
 
+    fprintf(stderr, "\nFOUND LINKS:\n");
+
+    // print the results of grep to the terminal
+    size_t url_id = 0;
     while (fgets(BUFFER, BUF_SIZE - 1, urls) != NULL) {
+        fprintf(stderr, "%2.lu: ", ++url_id);
         write(fileno(stderr), BUFFER, strnlen(BUFFER, BUF_SIZE));
         memset(BUFFER, 0, BUF_SIZE);
     }
 
-    // pclose(grep);
-    fclose(response);
     fclose(urls);
-    fprintf(stderr, "GREP FINISHED\n");
+    return url_id;
 }
 
-// int search_urls(const char * document) {
-//     fprintf(stdout, "\n>>> [%lu] URL parser called\n", ++calls);
-//     compile_re();
-//     return parse_chunk((char*)document);
-// }
+const char *const pick_next_url(const size_t url_num) {
+    FILE *const urls = fopen(URLS_FILE, "r");
+
+    size_t url_id = 1;
+    memset(BUFFER, 0, BUF_SIZE);
+
+    while (fgets(BUFFER, BUF_SIZE - 1, urls) != NULL && ++url_id <= url_num) {
+        memset(BUFFER, 0, BUF_SIZE);
+    }
+
+    fclose(urls);
+    return BUFFER;
+}
+
+size_t url_choice(const size_t url_count, int *const ok) {
+    fprintf(stderr, "Enter id of URL to open (not greater than %lu), or Q to abort: ", url_count);
+    size_t picked = 0;
+    if (fscanf(stdin, "%lu", &picked) == 1 && ok != NULL)
+        *ok = 1;
+    if (picked > url_count && ok != NULL)
+        *ok = 0;
+    return picked;
+}
