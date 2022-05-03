@@ -147,3 +147,7 @@ int http_recieve(
     fprintf(stderr, "Socket: Read %li bytes, wrote %li bytes\n\n\n", bytes_read, bytes_read - bytes_left);
     return 0;    
 }
+
+int url_contains_protocol(const char *const url) {
+    return (strstr(url, "://") != NULL);
+}

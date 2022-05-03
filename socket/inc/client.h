@@ -23,5 +23,6 @@ int is_valid_ip(const char *const ip);
 int connected(const int sockfd);
 int http_get(char * url, const char * port);
 int http_recieve(const int sockfd, const int outfd);
+int url_contains_protocol(const char *const url);
 
 #endif

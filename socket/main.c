@@ -16,11 +16,15 @@ int main(int argc, char* argv[]) {
     const char http[] = "http://";
     const char https[] = "https://";
 
-    int SKIP_PROMPT = 0;
+    int URL_LOADED = 0;
 
     // infinite loop to wait for user input and scrape URLs
     for (;;) {
-        if (!SKIP_PROMPT) {
+        if (!URL_LOADED) {
+            memset(url, 0, BUF_SIZE);
+            memset(port, 0, PORT_BUF);
+            strncpy(port, "80", PORT_BUF - 1);
+
             fprintf(stderr, "Press Q to quit, Enter to enter website location: ");
             char key_pressed = 0;
             read(fileno(stdin), &key_pressed, 1);
@@ -43,7 +47,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (url == NULL || *url == 0) {
-            fprintf(stderr, "Invalid URL\n");
+            fprintf(stderr, "Empty URL pointer given\n");
             break;
         }
 
@@ -72,6 +76,7 @@ int main(int argc, char* argv[]) {
 
         if (!connected(sock)) {
             fprintf(stderr, "Failed to connect\n");
+            URL_LOADED = 0;
             continue;
         }
 
@@ -79,15 +84,12 @@ int main(int argc, char* argv[]) {
         http_recieve(sock, fileno(response_file));
         // grep response and store the result in tmp file
         parse();
-        memset(url, 0, BUF_SIZE);
-        memset(port, 0, PORT_BUF);
-        strncpy(port, "80", PORT_BUF - 1);
 
         fclose(response_file);
         fclose(urls_file);
 
         // let the user choose whether to move somewhere or not
-        int ok = 0; SKIP_PROMPT = 0;
+        int ok = 0; URL_LOADED = 0;
         const size_t url_count = list_urls();
 
         if (!url_count) {
@@ -102,8 +104,18 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        SKIP_PROMPT = 1;
-        strncpy(url, pick_next_url(selected_url), sizeof(url) - 1);
+        URL_LOADED = 1;
+        const char *new_url = pick_next_url(selected_url);
+        if (!url_contains_protocol(new_url)) {
+            // must be an addition to the absolute path
+            fprintf(stdout, "URL must be relative: %s\n", new_url);
+            strcat(url, "/");
+            strcat(url, new_url);
+            fprintf(stdout, "Cat string: %s\n", url);
+            continue;
+        }
+        // must be a valid http link
+        strncpy(url, new_url, sizeof(url) - 1);
     }
 
     // close temporary files

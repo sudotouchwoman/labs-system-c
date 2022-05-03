@@ -1,14 +1,20 @@
 #include "urls.h"
 
 static const char GREP_CALL[] = 
-    "cat " RESPONSE_FILE
-    " | grep -Eo \"https?://[a-zA-Z0-9./?=_%:-]*\""
+    "cat " RESPONSE_FILE " | "
+    "grep -Eo '<a [^>]+>' |"
+    "grep -Eo 'href=\"[^\"]+\"' | "
+    "cut -c 7- | "
+    "grep -Eo '((https?|ftp|s3|mailto)://)?[a-zA-Z0-9./?=_%:-]+'"
     " > " URLS_FILE
+    // " | grep -Eoш <a href=['\"'\"'\"][^\"'\"'\"']*['\"'\"'\"]"
+    // " | grep -Eo \"https?://[a-zA-Z0-9./?=_%:-]*\""
     ;
 
 static char BUFFER[BUF_SIZE];
 
 void parse() {
+    // use grep to parse the obtained http response
     FILE *const response = fopen(RESPONSE_FILE, "r");
 
     int ret = 0;
@@ -26,6 +32,8 @@ void parse() {
 }
 
 size_t list_urls() {
+    // list all the URLs found on the page
+    // by reading grep's output
     FILE *const urls = fopen(URLS_FILE, "r");
     memset(BUFFER, 0, BUF_SIZE);
 
@@ -43,9 +51,22 @@ size_t list_urls() {
     return url_id;
 }
 
-const char *const pick_next_url(const size_t url_num) {
-    FILE *const urls = fopen(URLS_FILE, "r");
+size_t url_choice(const size_t url_count, int *const ok) {
+    // let the user select number of URL to open next
+    fprintf(stderr, "Enter id of URL to open (not greater than %lu), or Q to abort: ", url_count);
+    size_t picked = 0;
+    if (fscanf(stdin, "%lu", &picked) == 1 && ok != NULL)
+        *ok = 1;
+    if (picked > url_count && ok != NULL)
+        *ok = 0;
+    return picked;
+}
 
+const char *const pick_next_url(const size_t url_num) {
+    // read URLs from tmp file until
+    // the given number of lines is read
+    // or EOF encountered
+    FILE *const urls = fopen(URLS_FILE, "r");
     size_t url_id = 1;
     memset(BUFFER, 0, BUF_SIZE);
 
@@ -55,14 +76,4 @@ const char *const pick_next_url(const size_t url_num) {
 
     fclose(urls);
     return BUFFER;
-}
-
-size_t url_choice(const size_t url_count, int *const ok) {
-    fprintf(stderr, "Enter id of URL to open (not greater than %lu), or Q to abort: ", url_count);
-    size_t picked = 0;
-    if (fscanf(stdin, "%lu", &picked) == 1 && ok != NULL)
-        *ok = 1;
-    if (picked > url_count && ok != NULL)
-        *ok = 0;
-    return picked;
 }
