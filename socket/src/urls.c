@@ -5,10 +5,10 @@ static const char GREP_CALL[] =
     "grep -Eo '<a [^>]+>' |"
     "grep -Eo 'href=\"[^\"]+\"' | "
     "cut -c 7- | "
-    "grep -Eo '((https?|ftp|s3|mailto)://)?[a-zA-Z0-9./?=_%:-]+'"
+    "rev | "
+    "cut -c 2- | "
+    "rev "
     " > " URLS_FILE
-    // " | grep -Eoш <a href=['\"'\"'\"][^\"'\"'\"']*['\"'\"'\"]"
-    // " | grep -Eo \"https?://[a-zA-Z0-9./?=_%:-]*\""
     ;
 
 static char BUFFER[BUF_SIZE];
