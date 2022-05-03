@@ -8,6 +8,9 @@
 #define MAX_GROUPS (2)
 #define MAX_MATCHES (256)
 
+#define RESPONSE_FILE ".response.tmp"
+#define URLS_FILE ".urls.tmp"
+
 enum {
     URL_WAIT,
     SOL,
@@ -18,7 +21,7 @@ enum {
     COMPILED
 };
 
-int init_parser();
-int search_urls(const char * document);
+// int search_urls(const char * document);
+void parse();
 
 #endif

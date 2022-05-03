@@ -129,8 +129,7 @@ static ssize_t written(
 
 int http_recieve(
     const int sockfd,
-    const int outfd,
-    int (*callback)(const char * chunk)
+    const int outfd
 ) {
     static char RESPONSE_BUFFER[BUF_SIZE];
     memset(&RESPONSE_BUFFER, 0, BUF_SIZE);
@@ -140,7 +139,6 @@ int http_recieve(
     ssize_t bytes_left = 0;
 
     while ((ret = recv(sockfd, RESPONSE_BUFFER, BUF_SIZE, 0)) > 0) {
-        // callback(RESPONSE_BUFFER);
         bytes_read += ret;
         bytes_left += written(outfd, RESPONSE_BUFFER, ret, 0);
         memset(&RESPONSE_BUFFER, 0, BUF_SIZE);

@@ -11,31 +11,12 @@ int main(int argc, char* argv[]) {
     memset(port, 0, PORT_BUF);
     strncpy(port, "80", PORT_BUF - 1);
 
-    // if (argc == 1) {
-    //     usage(fileno(stdout));
-    //     return EXIT_FAILURE;
-    // }
-
-    // if (argc > 1) {
-    //     strncpy(url, argv[1], BUF_SIZE - 1);
-    //     if (argc == 3)
-    //         strncpy(port, argv[2], PORT_BUF - 1);
-
-    //     if (argc > 3) {
-    //         usage(fileno(stdout));
-    //         return EXIT_FAILURE;
-    //     }
-    // }
-
-    // char url[] = "http://example.com/";
-    // char url[] = "http://fedoruk.comcor.ru/non_canon.html";
-    // char url[] = "http://localhost/some-resource.txt";
-    // const char port[] = "80";
     char *protocol_removed = url;
 
     const char http[] = "http://";
     const char https[] = "https://";
 
+    // infinite loop to wait for user input and scrape URLs
     for (;;) {
         fprintf(stderr, "Press Q to quit, Enter to enter website location: ");
         char key_pressed = 0;
@@ -56,7 +37,20 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "Invalid option: %c\n", key_pressed);
             continue;
         }
-        init_parser();
+
+        // open temporary files
+        FILE *const response_file = fopen(RESPONSE_FILE, "w+");
+        FILE *const urls_file = fopen(URLS_FILE, "w+");
+
+        if (response_file == NULL || urls_file == NULL) {
+            fclose(response_file);
+            fclose(urls_file);
+            fprintf(stderr, "Failed to open temporary files\n");
+            return EXIT_FAILURE;
+        }
+
+        // initialize the parser and remove protocol from url if present
+        // init_parser();
         if ((strstr(url, http) != NULL)) {
             protocol_removed = url + sizeof(http) - 1;
         }
@@ -64,6 +58,7 @@ int main(int argc, char* argv[]) {
             protocol_removed = url + sizeof(https) - 1;
         }
 
+        // try to connect to the given URL
         fprintf(stdout, "Connecting to %s\n", url);
         const int sock = http_get(protocol_removed, port);
 
@@ -73,12 +68,19 @@ int main(int argc, char* argv[]) {
         }
 
         // recieve the response and pass it to the parser
-        http_recieve(sock, fileno(stderr), search_urls);
+        http_recieve(sock, fileno(response_file));
         fprintf(stderr, "Finished with url %s\n", url);
+        parse();
         memset(url, 0, BUF_SIZE);
         memset(port, 0, PORT_BUF);
         strncpy(port, "80", PORT_BUF - 1);
+
+        fclose(response_file);
+        fclose(urls_file);
     }
 
+    // close temporary files
+    remove(RESPONSE_FILE);
+    remove(URLS_FILE);
     return EXIT_SUCCESS;
 }

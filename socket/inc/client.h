@@ -22,6 +22,6 @@ int is_valid_port(const int port);
 int is_valid_ip(const char *const ip);
 int connected(const int sockfd);
 int http_get(char * url, const char * port);
-int http_recieve(const int sockfd, const int outfd, int (*callback)(const char * chunk));
+int http_recieve(const int sockfd, const int outfd);
 
 #endif
