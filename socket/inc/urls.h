@@ -18,6 +18,7 @@ enum {
     COMPILED
 };
 
+int init_parser();
 int search_urls(const char * document);
 
 #endif

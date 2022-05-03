@@ -2,12 +2,9 @@
 
 static size_t urls_found = 0;
 static size_t calls = 0;
-static int parser_state = URL_WAIT;
-static int compiled = NON_COMPILED;
 
-static int init_parser() {
+int init_parser() {
     urls_found = 0;
-    parser_state = URL_WAIT;
     return urls_found;
 }
 
@@ -65,12 +62,6 @@ static int parse_chunk(char *const chunk) {
 
 int search_urls(const char * document) {
     fprintf(stdout, "\n>>> [%lu] URL parser called\n", ++calls);
-    if (compiled == NON_COMPILED) {
-        const int status = compile_re();
-        fprintf(stderr, "%s: %d\n", status? "Did not compile!": "Compiled, OK", status);
-        if (status) return -1;
-        compiled = COMPILED;
-    }
-    init_parser();
+    compile_re();
     return parse_chunk((char*)document);
 }
