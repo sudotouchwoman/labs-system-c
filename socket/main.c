@@ -5,9 +5,13 @@
 int main(int argc, char* argv[]) {
 
     char url[BUF_SIZE];
+    char url_current[BUF_SIZE];
+    char url_last[BUF_SIZE];
     char port[PORT_BUF];
 
     memset(url, 0, BUF_SIZE);
+    memset(url_current, 0, BUF_SIZE);
+    memset(url_last, 0, BUF_SIZE);
     memset(port, 0, PORT_BUF);
     strncpy(port, "80", PORT_BUF - 1);
 
@@ -56,6 +60,11 @@ int main(int argc, char* argv[]) {
             break;
         }
 
+        memset(url_current, 0, BUF_SIZE);
+        strncpy(url_current, url, BUF_SIZE - 1);
+
+        fprintf(stderr, "Current URL: %s, Previous URL: %s\n", url_current, url_last);
+
         // open temporary files
         FILE *const response_file = fopen(RESPONSE_FILE, "w+");
         FILE *const urls_file = fopen(URLS_FILE, "w+");
@@ -99,13 +108,25 @@ int main(int argc, char* argv[]) {
 
         if (!url_count) {
             fprintf(stderr, "No URLs were found on this page\n");
-            continue;
         }
 
         size_t selected_url = url_choice(url_count, &ok);
 
         if (!ok) {
-            fprintf(stderr, "Invalid option.\n");
+            fprintf(stderr, "Abort.\n");
+            continue;
+        }
+
+        if (!selected_url) {
+            URL_LOADED = 1;
+            if (*url_last) {
+                strncpy(url, url_last, BUF_SIZE - 1);
+                strncpy(url_last, url_current, BUF_SIZE - 1);
+                continue;
+            }
+            fprintf(stderr, "Did not found previous page\n");
+            strncpy(url, url_current, BUF_SIZE - 1);
+            strncpy(url_last, url_current, BUF_SIZE - 1);
             continue;
         }
 
@@ -118,8 +139,13 @@ int main(int argc, char* argv[]) {
             strcat(url, "/");
             strcat(url, new_url);
             fprintf(stdout, "Cat string: %s\n", url);
+
+            memset(url_last, 0, BUF_SIZE);
+            strncpy(url_last, url_current, BUF_SIZE - 1);
             continue;
         }
+        memset(url_last, 0, BUF_SIZE);
+        strncpy(url_last, url_current, BUF_SIZE - 1);
         // must be a valid http link
         strncpy(url, new_url, sizeof(url) - 1);
     }
