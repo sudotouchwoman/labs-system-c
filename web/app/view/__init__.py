@@ -1,21 +1,12 @@
-def create_app(settings):
-    '''Create new app instance'''
-    if settings is None: raise ValueError('Application factory abort: bad config provided')
+from .. import AppConfig
 
+def create_app(settings: AppConfig):
+    """Create new app instance"""
     from .routes import app
+
     with app.app_context():
-
-        # app.config['SECRET_KEY'] = settings.SECRET_KEY
-        # app.config['POLICIES'] = settings.POLICIES
-        # app.config['DB'] = settings.DB
-        # app.config['QUERIES'] = settings.QUERIES
-
-        # from .hospital.routes import hospital_bp
-        # from .patients.routes import patients_bp
-        # from .auth.routes import auth_bp
-        
-        # app.register_blueprint(hospital_bp, url_prefix='/hospital')
-        # app.register_blueprint(patients_bp, url_prefix='/patients')
-        # app.register_blueprint(auth_bp, url_prefix='/auth')
-
+        # try to create create config instance
+        # mark health as False if failed to load the db schema
+        app.config["HEALTH"] = settings.schema is not None
+        app.config["SCHEMA"] = settings.schema
         return app

@@ -1,0 +1,25 @@
+{% extends 'index.j2' %}
+
+{% block title %}
+
+{% if title %}
+{{ title }}
+{% else %}
+Sample text
+{% endif %}
+
+{% endblock title %}
+
+{% block body %}
+<div class="description">
+    <h1>Visualization of finite element grid</h1>
+</div>
+<div class="figure">
+    <div id="chart" class="chart"></div>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script type="text/javascript">
+        var graphs = {{ figure }};
+        Plotly.plot('chart', graphs, {});        
+    </script>
+</div>
+{% endblock body %}

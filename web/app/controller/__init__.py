@@ -33,3 +33,5 @@ FROM
 			JOIN nodes ON nodes.id = elements.n3
 	) n3 ON n1.id = n3.id
 """
+
+HOVER_LABEL = dict(bgcolor="white", font_size=16, font_family="Rockwell")

@@ -5,7 +5,13 @@ Base app is created here and later blueprints are added to it via blueprint fact
 
 This module contains routes for main menu and something else, maybe
 """
-from flask import Flask, render_template, session
+import json
+
+from flask import Flask, render_template, current_app
+from plotly.utils import PlotlyJSONEncoder
+
+from ..controller.render import plot_midpoints
+from ..controller.elements import fetch_elements
 
 app = Flask(
     __name__,
@@ -21,12 +27,23 @@ def page_not_found_redirect(e=None) -> str:
     return render_template("404.j2")
 
 
-@app.route("/exit", methods=["GET"])
-def exit_page() -> str:
-    session.clear()
-    return render_template("exit.j2")
+@app.route("/health", methods=["GET"])
+def health_handler() -> str:
+    return str(app.config["SCHEMA"]) if app.config.get("HEALTH", False) else "NOT OK"
 
 
-@app.route("/menu", methods=["GET"])
-def main_menu() -> str:
-    return render_template("entrypoint.j2")
+@app.route("/figure", methods=["GET"])
+def figure_handler() -> str:
+    schema = current_app.config.get("SCHEMA")
+    if not schema:
+        # should be refactored to return something more
+        # comprehensible (e.g., redirect somewhere)
+        return "NO SCHEMA"
+
+    elements = tuple(fetch_elements(schema))
+    if not elements:
+        return "NO ELEMENTS"
+
+    fig = plot_midpoints(fig=None, elements=elements)
+    figJSON = json.dumps(fig, cls=PlotlyJSONEncoder)
+    return render_template("figure.j2", figure=figJSON, title="Finite Elements")
