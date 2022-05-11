@@ -10,7 +10,7 @@ import json
 from flask import Flask, render_template, current_app
 from plotly.utils import PlotlyJSONEncoder
 
-from ..controller.render import plot_midpoints
+from ..controller.render import plot_midpoints, plot_polygons
 from ..controller.elements import fetch_elements
 
 app = Flask(
@@ -40,10 +40,13 @@ def figure_handler() -> str:
         # comprehensible (e.g., redirect somewhere)
         return "NO SCHEMA"
 
-    elements = tuple(fetch_elements(schema))
+    elements = fetch_elements(schema)
     if not elements:
         return "NO ELEMENTS"
+    elements = tuple(elements)
 
-    fig = plot_midpoints(fig=None, elements=elements)
+    fig = plot_polygons(fig=None, elements=elements)
+    fig = plot_midpoints(fig=fig, elements=elements)
+
     figJSON = json.dumps(fig, cls=PlotlyJSONEncoder)
     return render_template("figure.j2", figure=figJSON, title="Finite Elements")
