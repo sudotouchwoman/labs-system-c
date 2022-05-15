@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (!n_threads || height % n_threads) {
-        fprintf(stderr, "Invalid number of threads specified: %lu, Row count: %d\n", n_threads, H);
+        fprintf(stderr, "Invalid number of threads specified: %lu, Row count: %lu\n", n_threads, height);
         exit(EXIT_FAILURE);
     }
 
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
         height, width, timesteps
     );
 
-    // theis config should be exported somewhere outside
+    // this config should be exported somewhere outside
     // and read in runtime but I am too lazy to do that
     const physics_t ex = {
         .C = 1.0,
