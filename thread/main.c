@@ -7,25 +7,46 @@
 #define N_THREADS 4
 #define H (32)
 #define W (32)
+#define TIMESTEPS (250)
 
 int main(int argc, char* argv[]) {
     size_t n_threads = N_THREADS;
 
-    if (argc == 2) {
+    if (argc >= 2) {
         n_threads = (size_t)atol(argv[1]);
         fprintf(stdout, "Provided number of threads: %lu\n", n_threads);
     } else {
         fprintf(stdout, "No user-provided number of threads, defaulting to %lu\n", n_threads);
     }
 
-    if (!n_threads || H % n_threads) {
+    size_t width = W, height = H, timesteps = TIMESTEPS;
+
+    if (argc >= 3) {
+        width = (size_t)atol(argv[2]);
+        height = (size_t)atol(argv[2]);
+    }
+
+    if (argc >= 4) {
+        height = (size_t)atol(argv[3]);
+    }
+
+    if (argc == 5) {
+        timesteps = (size_t)atol(argv[4]);
+    }
+
+    if (!n_threads || height % n_threads) {
         fprintf(stderr, "Invalid number of threads specified: %lu, Row count: %d\n", n_threads, H);
         exit(EXIT_FAILURE);
     }
 
+    fprintf(
+        stdout,
+        "Running with the following specs: grid [%lu;%lu], timesteps: %lu\n",
+        height, width, timesteps
+    );
+
     // theis config should be exported somewhere outside
     // and read in runtime but I am too lazy to do that
-    const size_t timesteps = 250;
     const physics_t ex = {
         .C = 1.0,
         .R = 2.5,
@@ -35,13 +56,13 @@ int main(int argc, char* argv[]) {
         .SOURCE = CURRENT_SOURCE
     };
 
-    grid_t * prev_grid = make_grid(H, W);
+    grid_t * prev_grid = make_grid(height, width);
     if (prev_grid == NULL) {
         fprintf(stderr, "Failed to create grid\n");
         return EXIT_FAILURE;
     }
 
-    grid_t * current_grid = make_grid(H, W);
+    grid_t * current_grid = make_grid(height, width);
     if (current_grid == NULL) {
         fprintf(stderr, "Failed to create grid\n");
         return EXIT_FAILURE;
@@ -56,7 +77,7 @@ int main(int argc, char* argv[]) {
     }
 
     // open saparate process to pass intermediate results to gnuplot
-    FILE* gnuplot_script = popen("gnuplot -persist", "w");
+    FILE* gnuplot_script = popen("gnuplot -persist 2> /dev/null", "w");
     if (gnuplot_script == NULL) {
         fprintf(stderr, "Failed to open output file with gnuplot script\n");
         destroy_grid(current_grid);
@@ -72,7 +93,6 @@ int main(int argc, char* argv[]) {
     struct timezone tz;
     gettimeofday(&t_start, &tz);
 
-    const size_t grid_size = sizeof(double) * current_grid->h * current_grid->w;
     // create threads and start integration
     spawn_workers(*pool, current_grid, prev_grid);
     sync(pool->start_barrier);
@@ -81,7 +101,11 @@ int main(int argc, char* argv[]) {
         sync(pool->end_barrier);
         fprintf(stderr, "\r[%3lu/%3lu] Processing...", i, timesteps);
         dump_timestep(gnuplot_script, prev_grid, i);
-        memcpy(prev_grid->grid, current_grid->grid, grid_size);
+
+        double * tmp = prev_grid->grid;
+        prev_grid->grid = current_grid->grid;
+        current_grid->grid = tmp;
+
         sync(pool->start_barrier);
     }
 

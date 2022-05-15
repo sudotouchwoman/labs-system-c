@@ -141,6 +141,8 @@ int spawn_workers(const managed_pool_t pool, grid_t *const current_grid, grid_t 
     // check provided pointers
     if (current_grid == NULL) return EMPTY_PTR_ERROR;
     if (prev_grid == NULL) return EMPTY_PTR_ERROR;
+    // if (*current_grid == NULL) return EMPTY_PTR_ERROR;
+    // if (*prev_grid == NULL) return EMPTY_PTR_ERROR;
     if (current_grid->grid == NULL) return EMPTY_PTR_ERROR;
     if (prev_grid->grid == NULL) return EMPTY_PTR_ERROR;
 
