@@ -9,7 +9,9 @@ log = make_logger(name=__name__, logfile="logs/app.log")
 
 
 def plot_midpoints(*, fig: go.Figure = None, elements: List[FE]) -> go.Figure:
+    log.debug(msg="Adds FE midpoint traces to figure")
     if not fig:
+        log.debug(msg="Creates go.Figure instanse")
         fig = go.Figure()
 
     central_points = tuple(extract_central_points(elements))
@@ -24,12 +26,13 @@ def plot_midpoints(*, fig: go.Figure = None, elements: List[FE]) -> go.Figure:
     )
 
     fig.add_trace(trace)
-    # fig.update_layout(hoverlabel=HOVER_LABEL)
     return fig
 
 
 def plot_polygons(*, fig: go.Figure = None, elements: List[FE]) -> go.Figure:
+    log.debug(msg="Adds polygon traces to figure")
     if not fig:
+        log.debug(msg="Creates go.Figure instanse")
         fig = go.Figure()
 
     def iter_nodes(e: FE, axis: str):
@@ -44,9 +47,8 @@ def plot_polygons(*, fig: go.Figure = None, elements: List[FE]) -> go.Figure:
             yield vertex.x if axis == "x" else vertex.y
         yield e.nodes[0].x if axis == "x" else e.nodes[0].y
 
-    def iter_polygons(axis: str):
+    def polygons(axis: str):
         def _gen():
-            yield None
             for element in elements:
                 yield from iter_nodes(element, axis)
                 yield None
@@ -56,8 +58,8 @@ def plot_polygons(*, fig: go.Figure = None, elements: List[FE]) -> go.Figure:
     trace = go.Scatter(
         name="Polygons",
         visible="legendonly",
-        x=iter_polygons("x"),
-        y=iter_polygons("y"),
+        x=polygons("x"),
+        y=polygons("y"),
         mode="markers+lines",
         fill="toself",
         marker_color="darkslateblue",
@@ -66,5 +68,4 @@ def plot_polygons(*, fig: go.Figure = None, elements: List[FE]) -> go.Figure:
     )
 
     fig.add_trace(trace)
-    # fig.update_layout(hoverlabel=HOVER_LABEL)
     return fig

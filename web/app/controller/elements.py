@@ -23,6 +23,7 @@ class FE:
 
 
 def extract_central_points(elements: Iterable[FE]) -> Iterable[Node]:
+    log.debug(msg="Extracts central points from elements")
     def mapping(e: FE) -> Node:
         mean_x = sum((node.x for node in e.nodes)) / len(e.nodes)
         mean_y = sum((node.y for node in e.nodes)) / len(e.nodes)

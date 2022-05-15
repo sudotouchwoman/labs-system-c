@@ -10,8 +10,11 @@ import json
 from flask import Flask, render_template, current_app
 from plotly.utils import PlotlyJSONEncoder
 
+from .. import make_logger
 from ..controller.render import plot_midpoints, plot_polygons
 from ..controller.elements import fetch_elements
+
+log = make_logger(__name__, "logs/app.log")
 
 app = Flask(
     __name__,
@@ -29,11 +32,13 @@ def page_not_found_redirect(e=None) -> str:
 
 @app.route("/health", methods=["GET"])
 def health_handler() -> str:
+    log.info(msg="Recieved request for health check")
     return str(app.config["SCHEMA"]) if app.config.get("HEALTH", False) else "NOT OK"
 
 
 @app.route("/figure", methods=["GET"])
 def figure_handler() -> str:
+    log.info(msg="Recieved request for figure")
     schema = current_app.config.get("SCHEMA")
     if not schema:
         # should be refactored to return something more
