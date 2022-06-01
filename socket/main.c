@@ -1,19 +1,15 @@
 #include "client.h"
 #include "urls.h"
-#include "iotty.h"
 
 int main(int argc, char* argv[]) {
 
     char url[BUF_SIZE];
     char url_current[BUF_SIZE];
     char url_last[BUF_SIZE];
-    char port[PORT_BUF];
 
     memset(url, 0, BUF_SIZE);
     memset(url_current, 0, BUF_SIZE);
     memset(url_last, 0, BUF_SIZE);
-    memset(port, 0, PORT_BUF);
-    strncpy(port, "80", PORT_BUF - 1);
 
     char *protocol_removed = url;
 
@@ -30,8 +26,6 @@ int main(int argc, char* argv[]) {
         fflush(NULL);
         if (!URL_LOADED) {
             memset(url, 0, BUF_SIZE);
-            memset(port, 0, PORT_BUF);
-            strncpy(port, "80", PORT_BUF - 1);
 
             fprintf(stderr, "Press Q to quit, Enter to enter website location: ");
             char key_pressed = 0;
@@ -76,6 +70,7 @@ int main(int argc, char* argv[]) {
             return EXIT_FAILURE;
         }
 
+        protocol_removed = url;
         // initialize the parser and remove protocol from url if present
         if ((strstr(url, http) != NULL)) {
             protocol_removed = url + sizeof(http) - 1;
@@ -86,7 +81,7 @@ int main(int argc, char* argv[]) {
 
         // try to connect to the given URL
         fprintf(stdout, "Connecting to %s\n", url);
-        const int sock = http_get(protocol_removed, port);
+        const int sock = http_get(protocol_removed, NULL);
 
         if (!connected(sock)) {
             fprintf(stderr, "Failed to connect\n");
@@ -110,13 +105,14 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "No URLs were found on this page\n");
         }
 
-        size_t selected_url = url_choice(url_count, &ok);
+        const size_t selected_url = url_choice(url_count, &ok);
 
         if (!ok) {
             fprintf(stderr, "Abort.\n");
             continue;
         }
 
+        // try to locate the previous url (selected 0)
         if (!selected_url) {
             URL_LOADED = 1;
             if (*url_last) {

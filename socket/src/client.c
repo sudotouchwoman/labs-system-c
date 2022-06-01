@@ -1,6 +1,6 @@
 #include "client.h"
 
-#include <arpa/inet.h>  // inet_pton
+#include <arpa/inet.h>  // inet_pton, inet_addr
 #include <netdb.h>  // gethostbyname
 #include <sys/socket.h>
 #include <errno.h>
@@ -44,27 +44,27 @@ static const char GET_ROOT_REQUEST_HEADER[] =
     "Connection: close\r\n\r\n"
     ;
 
-static char FILE_PATH[FILE_BUF];
 
 int http_get(char *url, const char *port) {
     // send GET request to the specified url and port
     char *aux;
-    char request_body[BUF_SIZE];
+    char REQUEST_BUFFER[BUF_SIZE];
+    char RESOURCE_PATH[BUF_SIZE / 2];
     const char *const url_copy = url;
 
     if (is_valid_ip(url) == IP_VALID || (aux = strstr(url, "/")) == NULL) {
         // valid IP address/bare hostname without file path is given
         // e.g., "1.1.1.1" or "github.com"
-        snprintf(request_body, BUF_SIZE, GET_ROOT_REQUEST_HEADER, url);
+        snprintf(REQUEST_BUFFER, BUF_SIZE, GET_ROOT_REQUEST_HEADER, url);
     } else {
         // host name contains a slash --> it is a path to file (resource)
         // e.g., "github.com/sudotouchwoman"
-        strncpy(FILE_PATH, aux, FILE_BUF);
+        strncpy(RESOURCE_PATH, aux, BUF_SIZE);
         strtok(url, "/");
-        snprintf(request_body, BUF_SIZE, GET_REQUEST_HEADER, FILE_PATH, url);
+        snprintf(REQUEST_BUFFER, BUF_SIZE, GET_REQUEST_HEADER, RESOURCE_PATH, url);
     }
 
-    fprintf(stderr, "Formed request:\n%s", request_body);
+    fprintf(stderr, "Formed request:\n%s", REQUEST_BUFFER);
 
     char ip[IPv4_SIZE];
     memset(ip, 0, IPv4_SIZE);
@@ -89,7 +89,8 @@ int http_get(char *url, const char *port) {
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = inet_addr(ip);
-    addr.sin_port = htons(atoi(port));
+    addr.sin_port = htons(80);  // 80 is the default http port
+    // addr.sin_port = htons(atoi(port));
 
     // try to connect to the host
     if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
@@ -98,7 +99,7 @@ int http_get(char *url, const char *port) {
     }
 
     fprintf(stderr, "Connection successful, sending GET request...\n\n");
-    write(sockfd, request_body, strnlen(request_body, BUF_SIZE));
+    write(sockfd, REQUEST_BUFFER, strnlen(REQUEST_BUFFER, BUF_SIZE));
     return sockfd;
 }
 

@@ -1,4 +1,4 @@
-set(CLIENT_SOURCES src/client.c src/iotty.c src/urls.c)
+set(CLIENT_SOURCES src/client.c src/urls.c)
 add_library(client SHARED ${CLIENT_SOURCES})
 target_include_directories(client PUBLIC inc/)
 

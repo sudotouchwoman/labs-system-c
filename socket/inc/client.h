@@ -3,8 +3,6 @@
 
 #include "common.h"
 
-#define FILE_BUF 64
-#define PORT_BUF 6
 #define IPv4_SIZE (3*4+4)
 
 enum {

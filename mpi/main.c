@@ -7,25 +7,25 @@
 // boundary conditions
 
 // left edge
-#define LEFT_1TYPE 100 // ГУ первого рода
-// #define LEFT_2TYPE 5 // ГУ второго рода
-// #define LEFT_3TYPE  // ГУ третьего рода
+#define LEFT_1TYPE 100 // 1 kind BC
+// #define LEFT_2TYPE 5 // 2 kind BC
+// #define LEFT_3TYPE  // 3 kind BC
 // right edge
 #define RIGHT_1TYPE 30
 // #define RIGHT_2TYPE 25
 // #define RIGHT_3TYPE
 
-#define L 200
-#define at 2
-#define dx 1
-#define dt 0.1
-#define T_MAX 20
+#define L (4096*4096)
+#define at 10
+#define dx 2
+#define dt 1
+#define T_MAX 1024
 #define T_0 20 // initial temperature value
 
 const int xx = L / dx;
 const int tt = T_MAX / dt;
 
-#define MAKE_GNUPLOT 1 // Писать или нет в gnuplot файл (0, 1)
+#define MAKE_GNUPLOT 0 // whether to write to gnuplot file (0, 1)
 
 void apply_boundary_conds(double *T);
 
@@ -56,10 +56,10 @@ int main(int argc, char **argv)
   double *T;
   if (!rank)
   {
-    if (dt > (dx*dx / (2 * at)))
-    {
-      fprintf(stderr, "With these values of dt, dx, at the result is inaccurate!\n");
-    }
+    // if (dt > (dx*dx / (2 * at)))
+    // {
+    //   fprintf(stderr, "With these values of dt, dx, at the result is inaccurate!\n");
+    // }
 
     T = (double *)malloc(sizeof(double) * xx);
     for (int i = 0; i < xx; ++i)
